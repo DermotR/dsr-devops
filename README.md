@@ -1,92 +1,73 @@
-# DSR DevOps
+# DSR DevOps Toolbox
 
-A collection of DevOps scripts and tools for streamlining development workflows.
+A collection of tools for streamlining development workflows, packaged as a self-contained folder that can be dropped into any project.
 
-## Overview
+## Quick Start
 
-This repository contains scripts and utilities to automate common development tasks, including:
-
-- Project setup
-- GitHub repository management
-- Development environment preparation
-- Session management (start/end of coding sessions)
-
-## Repository Structure
+Simply copy the `dsr-scripts` folder into your project directory:
 
 ```
-├── scripts/          # Automation scripts
-│   ├── github_checkin.sh           # Check in code at end of session
-│   ├── github_start_session.sh     # Prepare environment at start of session
-│   ├── setup_python_project.py     # Python script for project setup
-│   └── setup_python_project.sh     # Shell wrapper for project setup
-├── docs/             # Documentation
-└── templates/        # Template files for project scaffolding
+your-project/
+└── dsr-scripts/
 ```
 
-## Scripts
-
-### GitHub Session Management
-
-#### Start Session (`scripts/github_start_session.sh`)
-
-Prepares your development environment at the start of a coding session:
-
-- Pulls latest code from remote repository
-- Handles branch management
-- Checks for uncommitted changes
-- Sets up project dependencies (Python, Node.js)
-
-Usage:
-```bash
-./scripts/github_start_session.sh [branch_name]
-```
-
-#### End Session (`scripts/github_checkin.sh`)
-
-Automates the process of checking in code at the end of a coding session:
-
-- Adds and commits changes
-- Handles branch management
-- Pushes to remote repository
-
-Usage:
-```bash
-./scripts/github_checkin.sh [commit_message] [branch_name] [visibility]
-```
-
-### Project Setup
-
-#### Python Project Setup (`scripts/setup_python_project.sh`)
-
-Creates a standardized Python project structure with:
-
-- Virtual environment
-- Standard directory structure
-- Initial Git repository
-- GitHub integration
-
-Usage:
-```bash
-./scripts/setup_python_project.sh <prefix> [--no-github] [--public]
-```
-
-## Installation
-
-Clone this repository to your local machine:
+Then run any of the included scripts from your project directory:
 
 ```bash
-git clone https://github.com/DermotR/dsr-devops.git
-cd dsr-devops
+# Set up a Python project
+./dsr-scripts/setup_python_project.sh acme
+
+# Set up a Node.js project
+./dsr-scripts/setup_node_project.sh prefix=acme
+
+# Start a coding session
+./dsr-scripts/github_start_session.sh
+
+# Check in your code at the end of a session
+./dsr-scripts/github_checkin.sh "Your commit message"
 ```
 
-Make scripts executable:
-```bash
-chmod +x scripts/*.sh
-```
+## What's Included
 
-## Contributing
+The `dsr-scripts` folder contains:
 
-Feel free to submit issues and pull requests for new features or improvements.
+1. **Project Setup Tools:**
+   - Python project setup script
+   - Node.js project setup script with client-server architecture
+   - Templates for various project types
+
+2. **GitHub Workflow Tools:**
+   - Session start script (pulls latest code, checks environment)
+   - Check-in script (commits and pushes changes)
+
+3. **Templates & Resources:**
+   - Node.js client-server project template
+   - Common .gitignore files
+   - Project structure templates
+
+## How It Works
+
+These scripts are designed to be self-contained and operate relative to their location. When you run a script, it automatically:
+
+1. Detects that it's being run from within the `dsr-scripts` folder
+2. Looks one level up to find your project directory
+3. Uses your project folder name to generate the project name (with your prefix)
+4. Sets up everything in your project directory, not inside the `dsr-scripts` folder
+5. Automatically excludes the `dsr-scripts` folder from git
+
+## Project Naming Convention
+
+Project names are generated from your folder name with a prefix:
+
+- Folder: `My Project`
+- Prefix: `acme`
+- Result: `acme-my-project`
+
+This ensures consistent naming across projects.
+
+## Documentation
+
+For detailed usage instructions, see the [README.md](./dsr-scripts/README.md) inside the `dsr-scripts` folder.
 
 ## License
 

@@ -6,35 +6,43 @@
 # making the script executable and activating the virtual environment.
 #
 # Usage:
-#   ./setup_python_project.sh <prefix> [--no-github] [--public]
+#   ./dsr-scripts/setup_python_project.sh <prefix> [--no-github] [--public]
 #
 # Example:
-#   ./setup_python_project.sh acme
+#   ./dsr-scripts/setup_python_project.sh acme
 #   This will create a project named "acme-my-project" if run from a folder named "my-project".
 #
-#   ./setup_python_project.sh acme --no-github
+#   ./dsr-scripts/setup_python_project.sh acme --no-github
 #   This will create the project but skip GitHub repository creation.
 #
-#   ./setup_python_project.sh acme --public
+#   ./dsr-scripts/setup_python_project.sh acme --public
 #   This will create the project with a public GitHub repository instead of private.
+#
 
 set -e  # Exit immediately if a command exits with a non-zero status
 
 # Check if prefix argument is provided
 if [ $# -lt 1 ]; then
     echo "Error: Missing prefix argument."
-    echo "Usage: ./setup_python_project.sh <prefix> [--no-github] [--public]"
+    echo "Usage: ./dsr-scripts/setup_python_project.sh <prefix> [--no-github] [--public]"
     exit 1
 fi
 
 PREFIX="$1"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PYTHON_SCRIPT="$SCRIPT_DIR/setup_python_project.py"
+PARENT_DIR="$(dirname "$SCRIPT_DIR")"
 
 # Check for GitHub flag
 GITHUB_FLAG=""
 if [[ "$*" == *"--no-github"* ]]; then
     GITHUB_FLAG="--no-github"
+fi
+
+# Check for public flag
+VISIBILITY_FLAG=""
+if [[ "$*" == *"--public"* ]]; then
+    VISIBILITY_FLAG="--public"
 fi
 
 # Check for GitHub CLI if needed
@@ -89,25 +97,46 @@ if [ ! -x "$PYTHON_SCRIPT" ]; then
     chmod +x "$PYTHON_SCRIPT"
 fi
 
-# Check for public flag
-VISIBILITY_FLAG=""
-if [[ "$*" == *"--public"* ]]; then
-    VISIBILITY_FLAG="--public"
+# Check if directory is empty enough to proceed
+if [ "$(ls -A $PARENT_DIR | grep -v -E '^\.|^dsr-scripts$' | wc -l)" -ne 0 ]; then
+    echo "Warning: Directory $PARENT_DIR is not empty (excluding dsr-scripts folder)."
+    read -p "Do you want to continue anyway? Files may be overwritten. (y/n): " CONTINUE
+    if [[ $CONTINUE != "y" && $CONTINUE != "Y" ]]; then
+        echo "Setup aborted."
+        exit 1
+    fi
 fi
 
-# Run the Python setup script
-echo "Running Python setup script with prefix: $PREFIX"
+# Run the Python setup script from the parent directory
+echo "Running Python setup script with prefix: $PREFIX in parent directory: $PARENT_DIR"
+cd "$PARENT_DIR"
 "$PYTHON_SCRIPT" "$PREFIX" $GITHUB_FLAG $VISIBILITY_FLAG
 
+# Add .gitignore to exclude dsr-scripts directory
+if [ -f "$PARENT_DIR/.gitignore" ]; then
+    if ! grep -q "dsr-scripts/" "$PARENT_DIR/.gitignore"; then
+        echo "" >> "$PARENT_DIR/.gitignore"
+        echo "# DSR DevOps scripts" >> "$PARENT_DIR/.gitignore"
+        echo "dsr-scripts/" >> "$PARENT_DIR/.gitignore"
+        
+        # If git is initialized, update the gitignore
+        if [ -d "$PARENT_DIR/.git" ]; then
+            cd "$PARENT_DIR"
+            git add .gitignore
+            git commit -m "Add dsr-scripts directory to .gitignore"
+        fi
+    fi
+fi
+
 # Activate the virtual environment
-if [ -d ".venv" ]; then
+if [ -d "$PARENT_DIR/.venv" ]; then
     echo "Activating virtual environment..."
     
     # Get the correct activation script based on platform
-    if [ -f ".venv/bin/activate" ]; then
-        ACTIVATE_SCRIPT=".venv/bin/activate"  # Unix/Mac
-    elif [ -f ".venv/Scripts/activate" ]; then
-        ACTIVATE_SCRIPT=".venv/Scripts/activate"  # Windows
+    if [ -f "$PARENT_DIR/.venv/bin/activate" ]; then
+        ACTIVATE_SCRIPT="$PARENT_DIR/.venv/bin/activate"  # Unix/Mac
+    elif [ -f "$PARENT_DIR/.venv/Scripts/activate" ]; then
+        ACTIVATE_SCRIPT="$PARENT_DIR/.venv/Scripts/activate"  # Windows
     else
         echo "Error: Could not find activation script in .venv directory."
         exit 1

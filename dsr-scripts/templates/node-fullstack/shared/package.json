@@ -1,0 +1,15 @@
+{
+  "name": "{{PROJECT_NAME}}-shared",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "{{SHARED_BUILD_COMMAND}}",
+    "test": "{{SHARED_TEST_COMMAND}}",
+    "lint": "eslint src --ext js,ts"
+  },
+  "devDependencies": {
+    "eslint": "^8.42.0"
+  }
+}

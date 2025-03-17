@@ -1,34 +1,20 @@
-# macOS
+# OS generated files
 .DS_Store
-.AppleDouble
-.LSOverride
-Icon
+.DS_Store?
 ._*
-.DocumentRevisions-V100
-.fseventsd
 .Spotlight-V100
-.TemporaryItems
 .Trashes
-.VolumeIcon.icns
-.com.apple.timemachine.donotpresent
-
-# Windows
-Thumbs.db
+Icon?
 ehthumbs.db
+Thumbs.db
 Desktop.ini
-$RECYCLE.BIN/
-*.cab
-*.msi
-*.msm
-*.msp
-*.lnk
 
-# Linux
+# Temp files
 *~
-.fuse_hidden*
-.directory
-.Trash-*
-.nfs*
+*.swp
+*.swo
+.tmp
+.temp
 
 # Python
 __pycache__/
@@ -36,28 +22,30 @@ __pycache__/
 *$py.class
 *.so
 .Python
+.env
+.venv
 env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
+venv/
+ENV/
 *.egg-info/
 .installed.cfg
 *.egg
-.env
-.venv
-venv/
-ENV/
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+.pnpm-debug.log
 
 # IDE
 .idea/
 .vscode/
-*.swp
-*.swo
+*.sublime-project
+*.sublime-workspace
+.project
+.classpath
+
+# Azure/Azurite files
+__azurite*
+__blobstorage__
+__queuestorage__

@@ -6,14 +6,18 @@
 # ensures all dependencies are installed, and performs environment checks.
 #
 # Usage:
-#   ./github_start_session.sh [branch_name]
+#   ./dsr-scripts/github_start_session.sh [branch_name]
 #
 # Example:
-#   ./github_start_session.sh
-#   ./github_start_session.sh feature/new-module
+#   ./dsr-scripts/github_start_session.sh
+#   ./dsr-scripts/github_start_session.sh feature/new-module
 #
 
 set -e  # Exit immediately if a command exits with a non-zero status
+
+# Script directory and parent directory
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PARENT_DIR="$(dirname "$SCRIPT_DIR")"
 
 # Default to current branch if not specified
 BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
@@ -186,14 +190,14 @@ sync_with_remote() {
 
 # Function to check for Python environment
 check_python_environment() {
-    if [ -f "requirements.txt" ]; then
+    if [ -f "$PARENT_DIR/requirements.txt" ]; then
         echo "Python project detected. Checking dependencies..."
         
         # Check for virtualenv
-        if [ -d ".venv" ] || [ -d "venv" ] || [ -d "env" ]; then
-            VENV_DIR=".venv"
-            [ -d "venv" ] && VENV_DIR="venv"
-            [ -d "env" ] && VENV_DIR="env"
+        if [ -d "$PARENT_DIR/.venv" ] || [ -d "$PARENT_DIR/venv" ] || [ -d "$PARENT_DIR/env" ]; then
+            VENV_DIR="$PARENT_DIR/.venv"
+            [ -d "$PARENT_DIR/venv" ] && VENV_DIR="$PARENT_DIR/venv"
+            [ -d "$PARENT_DIR/env" ] && VENV_DIR="$PARENT_DIR/env"
             
             echo "Virtual environment found: $VENV_DIR"
             
@@ -211,14 +215,14 @@ check_python_environment() {
             read -p "Would you like to update project dependencies? (y/n): " UPDATE_DEPS
             if [[ $UPDATE_DEPS == "y" || $UPDATE_DEPS == "Y" ]]; then
                 echo "Updating dependencies..."
-                $PIP_PATH install -U -r requirements.txt
+                $PIP_PATH install -U -r "$PARENT_DIR/requirements.txt"
                 
                 # Check for dev dependencies
-                if [ -f "requirements-dev.txt" ]; then
+                if [ -f "$PARENT_DIR/requirements-dev.txt" ]; then
                     read -p "Update development dependencies as well? (y/n): " UPDATE_DEV
                     if [[ $UPDATE_DEV == "y" || $UPDATE_DEV == "Y" ]]; then
                         echo "Updating development dependencies..."
-                        $PIP_PATH install -U -r requirements-dev.txt
+                        $PIP_PATH install -U -r "$PARENT_DIR/requirements-dev.txt"
                     fi
                 fi
             fi
@@ -228,12 +232,13 @@ check_python_environment() {
             
             if [[ $CREATE_VENV == "y" || $CREATE_VENV == "Y" ]]; then
                 echo "Creating virtual environment in .venv..."
+                cd "$PARENT_DIR"
                 python -m venv .venv
                 
-                if [ -f ".venv/bin/pip" ]; then
-                    PIP_PATH=".venv/bin/pip"
-                elif [ -f ".venv/Scripts/pip" ]; then
-                    PIP_PATH=".venv/Scripts/pip"
+                if [ -f "$PARENT_DIR/.venv/bin/pip" ]; then
+                    PIP_PATH="$PARENT_DIR/.venv/bin/pip"
+                elif [ -f "$PARENT_DIR/.venv/Scripts/pip" ]; then
+                    PIP_PATH="$PARENT_DIR/.venv/Scripts/pip"
                 else
                     echo "Error: pip not found in created virtual environment."
                     exit 1
@@ -241,36 +246,36 @@ check_python_environment() {
                 
                 echo "Installing dependencies..."
                 $PIP_PATH install -U pip
-                $PIP_PATH install -r requirements.txt
+                $PIP_PATH install -r "$PARENT_DIR/requirements.txt"
                 
-                if [ -f "requirements-dev.txt" ]; then
-                    $PIP_PATH install -r requirements-dev.txt
+                if [ -f "$PARENT_DIR/requirements-dev.txt" ]; then
+                    $PIP_PATH install -r "$PARENT_DIR/requirements-dev.txt"
                 fi
                 
                 echo -e "\nVirtual environment created and dependencies installed."
                 echo "To activate the virtual environment, run:"
-                if [ -f ".venv/bin/activate" ]; then
-                    echo "source .venv/bin/activate"
-                elif [ -f ".venv/Scripts/activate" ]; then
-                    echo ".venv\\Scripts\\activate"
+                if [ -f "$PARENT_DIR/.venv/bin/activate" ]; then
+                    echo "source $PARENT_DIR/.venv/bin/activate"
+                elif [ -f "$PARENT_DIR/.venv/Scripts/activate" ]; then
+                    echo "$PARENT_DIR/.venv\\Scripts\\activate"
                 fi
             fi
         fi
-    elif [ -f "pyproject.toml" ] || [ -f "setup.py" ]; then
+    elif [ -f "$PARENT_DIR/pyproject.toml" ] || [ -f "$PARENT_DIR/setup.py" ]; then
         echo "Python project detected. Consider reviewing your dependencies."
     fi
 }
 
 # Function to check for Node.js environment
 check_node_environment() {
-    if [ -f "package.json" ]; then
+    if [ -f "$PARENT_DIR/package.json" ]; then
         echo "Node.js project detected. Checking dependencies..."
         
         # Check if we have package-lock.json or yarn.lock to determine package manager
-        if [ -f "yarn.lock" ]; then
+        if [ -f "$PARENT_DIR/yarn.lock" ]; then
             PKG_MANAGER="yarn"
             INSTALL_CMD="yarn"
-        elif [ -f "pnpm-lock.yaml" ]; then
+        elif [ -f "$PARENT_DIR/pnpm-lock.yaml" ]; then
             PKG_MANAGER="pnpm"
             INSTALL_CMD="pnpm install"
         else
@@ -284,6 +289,7 @@ check_node_environment() {
         read -p "Would you like to update project dependencies? (y/n): " UPDATE_DEPS
         if [[ $UPDATE_DEPS == "y" || $UPDATE_DEPS == "Y" ]]; then
             echo "Updating dependencies..."
+            cd "$PARENT_DIR"
             $INSTALL_CMD
         fi
     fi
@@ -292,6 +298,9 @@ check_node_environment() {
 # Main function
 main() {
     echo "Starting coding session..."
+    
+    # Change to parent directory
+    cd "$PARENT_DIR"
     
     # Check if we're in a git repository
     check_git_repo

@@ -6,20 +6,18 @@
 # It handles adding files, creating a commit with a message, and pushing to the remote repository.
 #
 # Usage:
-#   ./github_checkin.sh [commit_message] [branch_name] [visibility]
-#
-# Parameters:
-#   commit_message - Message for the commit (optional, defaults to timestamped message)
-#   branch_name - Branch to commit to (optional, defaults to current branch)
-#   visibility - "public" or "private" for new repo creation (optional, defaults to "private")
+#   ./dsr-scripts/github_checkin.sh [commit_message] [branch_name] [visibility]
 #
 # Example:
-#   ./github_checkin.sh "Add new feature"
-#   ./github_checkin.sh "Fix bug in login form" feature/login-fix 
-#   ./github_checkin.sh "Initial commit" main public
+#   ./dsr-scripts/github_checkin.sh "Add new feature"
+#   ./dsr-scripts/github_checkin.sh "Fix bug in login form" feature/login-fix
 #
 
 set -e  # Exit immediately if a command exits with a non-zero status
+
+# Script directory and parent directory
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PARENT_DIR="$(dirname "$SCRIPT_DIR")"
 
 # Default values
 COMMIT_MESSAGE="Session update $(date '+%Y-%m-%d %H:%M')"
@@ -83,8 +81,10 @@ check_remote() {
             echo "Would you like to create a GitHub repository? (y/n): "
             read -r CREATE_REPO
             if [[ $CREATE_REPO == "y" || $CREATE_REPO == "Y" ]]; then
-                REPO_NAME=$(basename "$(pwd)")
+                # Use the parent directory name for the repository name
+                REPO_NAME=$(basename "$PARENT_DIR" | tr '[:upper:]' '[:lower:]' | tr ' _' '-')
                 echo "Creating GitHub repository '$REPO_NAME' with visibility: $REPO_VISIBILITY..."
+                cd "$PARENT_DIR"
                 gh repo create "$REPO_NAME" "--$REPO_VISIBILITY" --source=. --remote=origin
                 echo "GitHub repository created and connected as 'origin'."
             else
@@ -101,6 +101,9 @@ check_remote() {
 # Main function
 main() {
     echo "Starting GitHub check-in process..."
+    
+    # Change to parent directory
+    cd "$PARENT_DIR"
     
     # Check if we're in a git repository
     check_git_repo
