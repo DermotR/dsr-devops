@@ -14,11 +14,11 @@ your-project/
 Then run any of the included scripts from your project directory:
 
 ```bash
-# Set up a Python project
-./dsr-scripts/setup_python_project.sh acme
+# Set up a Python project (uses folder name as project name)
+./dsr-scripts/setup_python_project.sh
 
-# Set up a Node.js project
-./dsr-scripts/setup_node_project.sh prefix=acme
+# Set up a Node.js project (uses folder name as project name)
+./dsr-scripts/setup_node_project.sh
 
 # Start a coding session
 ./dsr-scripts/github_start_session.sh
@@ -51,19 +51,22 @@ These scripts are designed to be self-contained and operate relative to their lo
 
 1. Detects that it's being run from within the `dsr-scripts` folder
 2. Looks one level up to find your project directory
-3. Uses your project folder name to generate the project name (with your prefix)
+3. Uses your project folder name as the default project name
 4. Sets up everything in your project directory, not inside the `dsr-scripts` folder
 5. Automatically excludes the `dsr-scripts` folder from git
 
 ## Project Naming Convention
 
-Project names are generated from your folder name with a prefix:
+By default, project names are derived directly from the parent folder name:
 
 - Folder: `My Project`
-- Prefix: `acme`
-- Result: `acme-my-project`
+- Default project name: `my-project`
 
-This ensures consistent naming across projects.
+You can also specify a custom project name as the first argument to the setup scripts:
+
+```bash
+./dsr-scripts/setup_python_project.sh custom-project-name
+```
 
 ## Documentation
 

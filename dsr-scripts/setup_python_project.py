@@ -6,12 +6,12 @@ This script sets up a standardized Python project with virtual environment,
 GitHub repository, and recommended project structure.
 
 Usage:
-    ./setup_python_project.py <prefix> [--no-github]
+    ./setup_python_project.py <project_name> [--no-github] [--public]
 
 Example:
-    ./setup_python_project.py acme
+    ./setup_python_project.py my-project
     
-    This will create a project named "acme-my-project" if run from a folder named "my-project".
+    This will create a project with the specified name.
 """
 
 import os
@@ -20,14 +20,6 @@ import subprocess
 import re
 import shutil
 from pathlib import Path
-
-
-def get_project_name(prefix):
-    """Generate a project name based on current folder and given prefix."""
-    current_folder = os.path.basename(os.getcwd())
-    # Convert spaces and underscores to hyphens, make lowercase
-    sanitized_name = re.sub(r'[\s_]+', '-', current_folder.lower())
-    return f"{prefix}-{sanitized_name}"
 
 
 def setup_virtual_environment(project_name):
@@ -206,7 +198,24 @@ def setup_git(project_name, use_github=True, visibility="private"):
     
     # Initialize git
     subprocess.run(["git", "init"], check=True)
+    
+    # Ensure dsr-scripts is excluded from git
+    exclude_file = os.path.join(".git", "info", "exclude")
+    os.makedirs(os.path.dirname(exclude_file), exist_ok=True)
+    with open(exclude_file, "a") as f:
+        f.write("dsr-scripts/\n")
+    
+    # Add all files (using a more compatible approach)
+    print("Adding files to git...")
+    
+    # First, add .gitignore to make sure it's respected
+    if os.path.exists(".gitignore"):
+        subprocess.run(["git", "add", ".gitignore"], check=True)
+        
+    # Then add all files (let .gitignore handle exclusions)
     subprocess.run(["git", "add", "."], check=True)
+    
+    # Commit the initial structure
     subprocess.run(["git", "commit", "-m", "Initial commit with project structure"], check=True)
     
     # Check if GitHub CLI is available and create remote repository if requested
@@ -261,13 +270,20 @@ def setup_git(project_name, use_github=True, visibility="private"):
 
 def main():
     """Main entry point for the script."""
-    if len(sys.argv) < 2:
-        print("Error: Missing prefix argument.")
-        print("Usage: ./setup_python_project.py <prefix> [--no-github] [--public]")
-        sys.exit(1)
-    
-    prefix = sys.argv[1]
-    project_name = get_project_name(prefix)
+    # Default to current folder name if no project name provided
+    if len(sys.argv) < 2 or sys.argv[1].startswith('--'):
+        current_folder = os.path.basename(os.getcwd())
+        # Convert spaces and underscores to hyphens, make lowercase
+        project_name = re.sub(r'[\s_]+', '-', current_folder.lower())
+        
+        # If the first argument is a flag, keep it in the sys.argv list
+        if len(sys.argv) >= 2 and sys.argv[1].startswith('--'):
+            pass  # Keep the flag in sys.argv
+    else:
+        # Get project name directly from arguments
+        project_name = sys.argv[1]
+        # Remove the first argument (project name) to make flag checking easier
+        sys.argv.pop(1)
     
     # Check for optional flags
     use_github = "--no-github" not in sys.argv

@@ -6,40 +6,39 @@
 # package.json files, and GitHub repository.
 #
 # Usage:
-#   ./dsr-scripts/setup_node_project.sh prefix=<prefix> [--no-github] [--public] [--client-framework <framework>]
+#   ./dsr-scripts/setup_node_project.sh [project_name] [--no-github] [--public] [--client-framework <framework>]
 #
 # Example:
-#   ./dsr-scripts/setup_node_project.sh prefix=acme
-#   ./dsr-scripts/setup_node_project.sh prefix=acme --no-github
-#   ./dsr-scripts/setup_node_project.sh prefix=acme --public
-#   ./dsr-scripts/setup_node_project.sh prefix=acme --client-framework react
+#   ./dsr-scripts/setup_node_project.sh
+#   ./dsr-scripts/setup_node_project.sh my-custom-name
+#   ./dsr-scripts/setup_node_project.sh --no-github
+#   ./dsr-scripts/setup_node_project.sh --public
+#   ./dsr-scripts/setup_node_project.sh --client-framework react
 #
-# Note: Project name is based on the parent folder name. If you run this from a folder
-# named "my-project/dsr-scripts", it will create a project named "acme-my-project".
+# Note: If project_name is not provided, the parent folder name will be used.
 #
 
 set -e  # Exit immediately if a command exits with a non-zero status
 
-# Check if prefix argument is provided
-if [ $# -lt 1 ] || [[ "$1" != prefix=* ]]; then
-    echo "Error: Missing or invalid prefix argument."
-    echo "Usage: ./dsr-scripts/setup_node_project.sh prefix=<prefix> [--no-github] [--public] [--client-framework <framework>]"
-    echo "Example: ./dsr-scripts/setup_node_project.sh prefix=acme"
-    exit 1
-fi
-
-# Extract prefix from the argument
-PREFIX="${1#prefix=}"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 TEMPLATES_DIR="$SCRIPT_DIR/templates"
 PARENT_DIR="$(dirname "$SCRIPT_DIR")"
 
-# Generate project name based on parent folder and given prefix
+# Default to parent folder name for project name
 PARENT_FOLDER=$(basename "$PARENT_DIR")
 # Convert spaces and underscores to hyphens, make lowercase
 SANITIZED_FOLDER=$(echo "$PARENT_FOLDER" | tr '[:upper:]' '[:lower:]' | tr ' _' '-')
-PROJECT_NAME="$PREFIX-$SANITIZED_FOLDER"
+PROJECT_NAME="$SANITIZED_FOLDER"
 PROJECT_DIR="$PARENT_DIR"
+
+# Parse command line arguments
+if [ $# -ge 1 ]; then
+    # Check if first argument doesn't start with -- (not a flag)
+    if [[ "$1" != --* ]]; then
+        PROJECT_NAME="$1"
+        shift # Remove the first argument (project name)
+    fi
+fi
 
 # Default values
 USE_GITHUB=true
@@ -93,7 +92,7 @@ setup_client_framework() {
             
             # Create React specific files
             mkdir -p "$PROJECT_DIR/client/public" "$PROJECT_DIR/client/src"
-            
+            whaty 
             # Create index.html
             cat > "$PROJECT_DIR/client/public/index.html" << EOF
 <!DOCTYPE html>
@@ -432,14 +431,24 @@ main() {
     cd "$PROJECT_DIR"
     git init
     
-    # Add .gitignore to exclude dsr-scripts directory
+    # Make sure .gitignore exists and excludes dsr-scripts directory
     if ! grep -q "dsr-scripts/" "$PROJECT_DIR/.gitignore"; then
         echo "" >> "$PROJECT_DIR/.gitignore"
         echo "# DSR DevOps scripts" >> "$PROJECT_DIR/.gitignore"
         echo "dsr-scripts/" >> "$PROJECT_DIR/.gitignore"
     fi
     
+    # Create a temporary .git/info/exclude to ensure dsr-scripts is excluded
+    mkdir -p "$PROJECT_DIR/.git/info"
+    echo "dsr-scripts/" >> "$PROJECT_DIR/.git/info/exclude"
+    
+    # Add files in a more compatible way
+    echo "Adding files to git..."
+    # First add .gitignore to make sure it's respected
+    git add .gitignore
+    # Then add everything else (letting .gitignore exclude the dsr-scripts directory)
     git add .
+    
     git commit -m "Initial commit: $PROJECT_NAME project structure"
     
     # Set up GitHub repository if requested

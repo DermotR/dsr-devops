@@ -6,32 +6,42 @@
 # making the script executable and activating the virtual environment.
 #
 # Usage:
-#   ./dsr-scripts/setup_python_project.sh <prefix> [--no-github] [--public]
+#   ./dsr-scripts/setup_python_project.sh [project_name] [--no-github] [--public]
 #
 # Example:
-#   ./dsr-scripts/setup_python_project.sh acme
-#   This will create a project named "acme-my-project" if run from a folder named "my-project".
+#   ./dsr-scripts/setup_python_project.sh
+#   This will create a project based on the folder name.
 #
-#   ./dsr-scripts/setup_python_project.sh acme --no-github
+#   ./dsr-scripts/setup_python_project.sh my-custom-name
+#   This will create a project with the specified name.
+#
+#   ./dsr-scripts/setup_python_project.sh --no-github
 #   This will create the project but skip GitHub repository creation.
 #
-#   ./dsr-scripts/setup_python_project.sh acme --public
+#   ./dsr-scripts/setup_python_project.sh --public
 #   This will create the project with a public GitHub repository instead of private.
 #
 
 set -e  # Exit immediately if a command exits with a non-zero status
 
-# Check if prefix argument is provided
-if [ $# -lt 1 ]; then
-    echo "Error: Missing prefix argument."
-    echo "Usage: ./dsr-scripts/setup_python_project.sh <prefix> [--no-github] [--public]"
-    exit 1
-fi
-
-PREFIX="$1"
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PYTHON_SCRIPT="$SCRIPT_DIR/setup_python_project.py"
 PARENT_DIR="$(dirname "$SCRIPT_DIR")"
+
+# Default to parent folder name for project name
+PARENT_FOLDER=$(basename "$PARENT_DIR")
+# Convert spaces and underscores to hyphens, make lowercase
+SANITIZED_FOLDER=$(echo "$PARENT_FOLDER" | tr '[:upper:]' '[:lower:]' | tr ' _' '-')
+PROJECT_NAME="$SANITIZED_FOLDER"
+
+# Parse command line arguments
+if [ $# -ge 1 ]; then
+    # Check if first argument doesn't start with -- (not a flag)
+    if [[ "$1" != --* ]]; then
+        PROJECT_NAME="$1"
+        shift # Remove the first argument (project name)
+    fi
+fi
 
 # Check for GitHub flag
 GITHUB_FLAG=""
@@ -108,9 +118,16 @@ if [ "$(ls -A $PARENT_DIR | grep -v -E '^\.|^dsr-scripts$' | wc -l)" -ne 0 ]; th
 fi
 
 # Run the Python setup script from the parent directory
-echo "Running Python setup script with prefix: $PREFIX in parent directory: $PARENT_DIR"
+echo "Running Python setup script with project name: $PROJECT_NAME in parent directory: $PARENT_DIR"
 cd "$PARENT_DIR"
-"$PYTHON_SCRIPT" "$PREFIX" $GITHUB_FLAG $VISIBILITY_FLAG
+
+# Only pass project name if it's a custom name (not derived from directory)
+if [ "$PROJECT_NAME" != "$SANITIZED_FOLDER" ]; then
+    "$PYTHON_SCRIPT" "$PROJECT_NAME" $GITHUB_FLAG $VISIBILITY_FLAG
+else
+    # Use default (parent directory name)
+    "$PYTHON_SCRIPT" $GITHUB_FLAG $VISIBILITY_FLAG
+fi
 
 # Add .gitignore to exclude dsr-scripts directory
 if [ -f "$PARENT_DIR/.gitignore" ]; then
@@ -155,10 +172,24 @@ if [ -d "$PARENT_DIR/.venv" ]; then
     # Offer to activate the environment now
     read -p "Would you like to activate the virtual environment now? (y/n): " ACTIVATE_NOW
     if [[ $ACTIVATE_NOW == "y" || $ACTIVATE_NOW == "Y" ]]; then
-        echo "Activating virtual environment..."
-        source "$ACTIVATE_SCRIPT"
-        echo "Virtual environment activated. You can now run Python commands within this environment."
-        echo "To deactivate the virtual environment when finished, type 'deactivate'."
+        echo "Creating activation script..."
+        
+        # Create a temporary activation script
+        TEMP_SCRIPT=$(mktemp)
+        cat > "$TEMP_SCRIPT" << EOF
+#!/bin/bash
+source "$ACTIVATE_SCRIPT"
+cd "$PARENT_DIR"
+echo "Virtual environment activated for $PROJECT_NAME. You are now in $PARENT_DIR"
+echo "To deactivate the virtual environment when finished, type 'deactivate'"
+exec bash
+EOF
+        
+        chmod +x "$TEMP_SCRIPT"
+        
+        echo "Activating virtual environment in a new shell..."
+        echo "When you're done, type 'exit' to return to your original shell."
+        exec "$TEMP_SCRIPT"
     else
         echo "Virtual environment not activated. Activate manually when needed."
     fi
