@@ -117,9 +117,9 @@ Commits and pushes your code at the end of a session.
 
 ## How It Works
 
-These scripts operate in the parent directory where the `dsr-scripts` folder is located. The project name is based on the parent directory name, with a prefix added for standardization.
+These scripts operate in the parent directory where the `dsr-scripts` folder is located. The project name is based on the parent directory name, converted to a standardized format (lowercase with hyphens instead of spaces).
 
-For example, if your directory is named "My Project" and you use prefix "acme", the resulting project will be named "acme-my-project".
+For example, if your directory is named "My Project", the resulting project will be named "my-project". You can also provide a custom project name as the first argument to any setup script.
 
 The scripts will automatically:
 - Create proper project structure

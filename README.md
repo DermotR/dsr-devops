@@ -57,7 +57,7 @@ These scripts are designed to be self-contained and operate relative to their lo
 
 ## Project Naming Convention
 
-By default, project names are derived directly from the parent folder name:
+By default, project names are derived directly from the parent folder name, converted to lowercase with hyphens instead of spaces:
 
 - Folder: `My Project`
 - Default project name: `my-project`
