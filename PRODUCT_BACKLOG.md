@@ -47,6 +47,9 @@ This document outlines planned enhancements and features for the DSR-Scripts dev
 - [ ] Implement project scaffolding via configuration files
 - [ ] Create visual documentation with example outputs
 - [ ] Add command for adding new features to existing projects
+- [ ] Cross-platform support
+  - [ ] PowerShell versions of Bash scripts for Windows
+  - [ ] Platform detection and automatic script selection
 
 ## Future Considerations
 

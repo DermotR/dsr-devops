@@ -34,6 +34,7 @@ The `dsr-scripts` folder contains:
 1. **Project Setup Tools:**
    - Python project setup script
    - Node.js project setup script with client-server architecture
+   - Vite React + Prisma fullstack setup script
    - Templates for various project types
 
 2. **GitHub Workflow Tools:**
@@ -44,6 +45,13 @@ The `dsr-scripts` folder contains:
    - Node.js client-server project template
    - Common .gitignore files
    - Project structure templates
+
+## OS Support
+
+- **macOS/Linux**: All scripts have `.sh` extensions and are Bash compatible
+- **Windows**: PowerShell scripts with `.ps1` extensions are available for key setup operations
+
+The scripts automatically check for required dependencies and will prompt you to install any missing tools before proceeding.
 
 ## How It Works
 

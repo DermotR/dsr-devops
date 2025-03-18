@@ -11,6 +11,8 @@ This folder contains scripts for automating common development workflows. Simply
    ```
 
 2. Run scripts from your project directory:
+
+   **macOS/Linux**:
    ```bash
    # To set up a Python project
    ./dsr-scripts/setup_python_project.sh
@@ -21,6 +23,14 @@ This folder contains scripts for automating common development workflows. Simply
    # To set up a Vite React-TS + Node.js/Prisma project
    ./dsr-scripts/setup_vite_react_prisma.sh
    ```
+
+   **Windows**:
+   ```powershell
+   # To set up a Vite React-TS + Node.js/Prisma project
+   .\dsr-scripts\setup_vite_react_prisma.ps1
+   ```
+   
+   Note: More PowerShell scripts for Windows are coming soon. Check the backlog for details.
 
 ## Available Scripts
 
@@ -120,6 +130,23 @@ Commits and pushes your code at the end of a session.
 These scripts operate in the parent directory where the `dsr-scripts` folder is located. The project name is based on the parent directory name, converted to a standardized format (lowercase with hyphens instead of spaces).
 
 For example, if your directory is named "My Project", the resulting project will be named "my-project". You can also provide a custom project name as the first argument to any setup script.
+
+## OS Compatibility
+
+The scripts are designed to work across different operating systems:
+
+### macOS/Linux
+- Uses Bash shell scripts (`.sh` files)
+- Detects dependencies and ensures proper environment setup
+- Requires Bash to be installed
+
+### Windows
+- Uses PowerShell scripts (`.ps1` files)
+- Automatically checks for required dependencies
+- Provides download links for any missing tools
+- Requires PowerShell 5.1 or higher
+
+All scripts perform the same functions regardless of OS, providing a consistent experience across platforms.
 
 The scripts will automatically:
 - Create proper project structure
